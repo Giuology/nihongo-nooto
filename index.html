@@ -524,44 +524,56 @@ document.addEventListener('click',e=>{
 });
 
 // Lógica para Salvar e Cancelar a edição
-$('editCancel').onclick = () => {
-  $('editModal').classList.add('hidden');
-  currentEdit = null;
-};
+// Lógica para Salvar e Cancelar a edição
+window.addEventListener('load', () => {
+  const btnCancel = document.getElementById('editCancel');
+  const btnSave = document.getElementById('editSave');
+  const modal = document.getElementById('editModal');
 
-$('editSave').onclick = () => {
-  if(!currentEdit) return;
-  
-  if(currentEdit.type === 'v'){
-    const it = S.vocab.find(x=>x.id===currentEdit.id);
-    if(it){
-      it.kana = $('editKana').value.trim();
-      it.kanji = $('editKanji').value.trim();
-      it.tr = $('editTr').value.trim();
-      it.t = Date.now();
-      // Recalcula o verbo se a pessoa mudou para um verbo terminado em "ます"
-      if(it.kana.endsWith('ます') && it.kana.length>2){
-        it.verb = mkVerb(it.kana, it.kanji, guessGroup(it.kana, it.kanji));
-      } else {
-        delete it.verb;
-      }
-    }
-  } else {
-    const it = S.gram.find(x=>x.id===currentEdit.id);
-    if(it){
-      it.title = $('editTitleField').value.trim();
-      it.expl = $('editExpl').value.trim();
-      it.ex = $('editEx').value.trim();
-      it.t = Date.now();
-    }
+  if (btnCancel) {
+    btnCancel.onclick = (ev) => {
+      ev.preventDefault();
+      modal.classList.add('hidden');
+      currentEdit = null;
+    };
   }
-  
-  save();
-  render();
-  $('editModal').classList.add('hidden');
-  currentEdit = null;
-  toast('Alterações salvas!');
-};
+
+  if (btnSave) {
+    btnSave.onclick = (ev) => {
+      ev.preventDefault();
+      if(!currentEdit) return;
+      
+      if(currentEdit.type === 'v'){
+        const it = S.vocab.find(x=>x.id===currentEdit.id);
+        if(it){
+          it.kana = document.getElementById('editKana').value.trim();
+          it.kanji = document.getElementById('editKanji').value.trim();
+          it.tr = document.getElementById('editTr').value.trim();
+          it.t = Date.now();
+          if(it.kana.endsWith('ます') && it.kana.length>2){
+            it.verb = mkVerb(it.kana, it.kanji, guessGroup(it.kana, it.kanji));
+          } else {
+            delete it.verb;
+          }
+        }
+      } else {
+        const it = S.gram.find(x=>x.id===currentEdit.id);
+        if(it){
+          it.title = document.getElementById('editTitleField').value.trim();
+          it.expl = document.getElementById('editExpl').value.trim();
+          it.ex = document.getElementById('editEx').value.trim();
+          it.t = Date.now();
+        }
+      }
+      
+      save();
+      render();
+      modal.classList.add('hidden');
+      currentEdit = null;
+      toast('Alterações salvas!');
+    };
+  }
+});
 ['qV','fV','oV'].forEach(i=>$(i).addEventListener('input',renderVd));
 ['qG','fG'].forEach(i=>$(i).addEventListener('input',renderGd));
 ['qK','fK'].forEach(i=>$(i).addEventListener('input',renderKd));
