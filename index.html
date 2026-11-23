@@ -92,6 +92,9 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
 @media(max-width:600px){.prow{grid-template-columns:1fr 1fr 34px}.prow input:nth-child(3){grid-column:1/3}.prow .x{grid-row:1/3;grid-column:3}}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:#f1e9c9;color:#1b2a1c;padding:14px 20px;border-radius:14px;font-weight:700;max-width:92vw;z-index:50;box-shadow:0 6px 24px #0008}
 .x.arm{color:#c97b72;font:700 .8rem 'Nunito';width:auto;padding:0 6px}
+  .row-actions { display: flex; gap: 4px; justify-content: flex-end; align-items: center; }
+.x.edit { color: #8fbf7f; font-size: 1rem; }
+.x.edit:hover { color: #b7d3a8; }
 .vb{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;font:600 .95rem 'Nunito',sans-serif;color:#a3b3a0;padding:4px 0 6px}
 .vb b{color:#8fbf7f;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;margin-right:6px}
 .vb ruby{font:500 1.2rem 'Zen Maru Gothic',sans-serif;color:#f1e9c9}
@@ -234,6 +237,35 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
 
 
 <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <!-- Modal de Edição (fica escondido por padrão) -->
+<div id="editModal" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000c;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#1c271f;border:1px solid #34483a;border-radius:18px;padding:20px;max-width:400px;width:100%;display:grid;gap:12px;">
+    <h3 style="margin:0;color:#f1e9c9;font:700 1.2rem 'Fraunces',serif;" id="editTitle">Editar palavra</h3>
+    
+    <div id="editVocabFields" style="display:grid;gap:8px;">
+      <label>Furigana</label>
+      <input id="editKana" type="text">
+      <label>Kanji (opcional)</label>
+      <input id="editKanji" type="text">
+      <label>Tradução</label>
+      <input id="editTr" type="text">
+    </div>
+
+    <div id="editGramFields" style="display:none;gap:8px;">
+      <label>Padrão da regra</label>
+      <input id="editTitleField" type="text">
+      <label>Explicação</label>
+      <textarea id="editExpl" style="min-height:80px;"></textarea>
+      <label>Exemplos</label>
+      <textarea id="editEx" style="min-height:80px;"></textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:10px;">
+      <button class="btn" id="editSave" style="flex:1;">Salvar</button>
+      <button class="btn ghost" id="editCancel" style="flex:1;">Cancelar</button>
+    </div>
+  </div>
+</div>
 <noscript><p style="text-align:center;color:#a3b3a0">Este caderninho precisa de JavaScript para funcionar.</p></noscript>
 <script>
 'use strict';
@@ -289,7 +321,7 @@ function renderV(){
   const open=q.trim()||g.length===1;
   $('listV').innerHTML=g.map(([c,it])=>`<details class="chap" ${open?'open':''}><summary>Capítulo ${c}<span class="count">${it.length} palavras</span></summary>
   <div class="hd"><span>Furigana</span><span>Kanji</span><span>Tradução</span><span></span></div>
-  ${it.map(x=>`<div class="row"><span class="f">${hl(x.kana,q)}</span><span class="k">${hl(x.kanji||'—',q)}</span><span class="t">${hl(x.tr,q)}</span><button class="x" data-dv="${x.id}" aria-label="Apagar">×</button>${x.verb?vb(x.verb,x.id):''}</div>`).join('')}</details>`).join('');
+  ${it.map(x=>`<div class="row"><span class="f">${hl(x.kana,q)}</span><span class="k">${hl(x.kanji||'—',q)}</span><span class="t">${hl(x.tr,q)}</span><span class="row-actions"><button class="x edit" data-ev="${x.id}" title="Editar">✏️</button><button class="x" data-dv="${x.id}" title="Apagar">×</button></span>${x.verb?vb(x.verb,x.id):''}</div>`).join('')}</details>`).join('');
 }
 function renderG(){
   const q=$('qG').value,g=group(S.gram,q,$('fG').value);
@@ -297,7 +329,7 @@ function renderG(){
   if(!g.length){$('listG').innerHTML='<div class="empty">Nada encontrado </div>';return}
   const open=q.trim()||g.length===1;
   $('listG').innerHTML=g.map(([c,it])=>`<details class="chap" ${open?'open':''}><summary>Capítulo ${c}<span class="count">${it.length} regras</span></summary>
-  ${it.map(x=>`<div class="gram"><h3>${hl(x.title,q)}<button class="x" data-dg="${x.id}" aria-label="Apagar">×</button></h3>${x.expl?`<p>${hl(x.expl,q)}</p>`:''}${x.ex?`<div class="ex">${hl(x.ex,q)}</div>`:''}</div>`).join('')}</details>`).join('');
+  ${it.map(x=>`<div class="gram"><h3>${hl(x.title,q)}<span class="row-actions"><button class="x edit" data-eg="${x.id}" title="Editar">✏️</button><button class="x" data-dg="${x.id}" title="Apagar">×</button></span></h3>${x.expl?`<p>${hl(x.expl,q)}</p>`:''}${x.ex?`<div class="ex">${hl(x.ex,q)}</div>`:''}</div>`).join('')}</details>`).join('');
 }
 function renderK(){
   const q=$('qK').value,g=group(S.kanji,q,$('fK').value);
@@ -438,14 +470,48 @@ function mkVerb(k,kj,g){
   return {g,j:out[0],te:out[1],nai:out[2],auto:true};
 }
 let armed=null;
+let currentEdit=null; // Guarda o que está sendo editado
+
 document.addEventListener('click',e=>{
   const t=e.target;
   const gx=t.dataset&&t.dataset.gx;
+  
+  // 1. Trocar grupo verbal (aquele botãozinho de Grupo I/II/III)
   if(gx){
     e.stopPropagation();
     const it=S.vocab.find(x=>x.id===gx);if(!it||!it.verb)return;
     it.verb=mkVerb(it.kana,it.kanji,(it.verb.g%3)+1);it.t=Date.now();save();renderV();return;
   }
+
+  // 2. NOVO: Botão de Editar (Lápis)
+  const ev=t.dataset.ev, eg=t.dataset.eg;
+  if(ev || eg){
+    e.stopPropagation();
+    currentEdit = { type: ev ? 'v' : 'g', id: ev || eg };
+    const modal = $('editModal');
+    
+    if(currentEdit.type === 'v'){
+      const it = S.vocab.find(x=>x.id===currentEdit.id);
+      $('editTitle').textContent = 'Editar palavra';
+      $('editVocabFields').style.display = 'grid';
+      $('editGramFields').style.display = 'none';
+      $('editKana').value = it.kana;
+      $('editKanji').value = it.kanji;
+      $('editTr').value = it.tr;
+    } else {
+      const it = S.gram.find(x=>x.id===currentEdit.id);
+      $('editTitle').textContent = 'Editar regra';
+      $('editVocabFields').style.display = 'none';
+      $('editGramFields').style.display = 'grid';
+      $('editTitleField').value = it.title;
+      $('editExpl').value = it.expl;
+      $('editEx').value = it.ex;
+    }
+    modal.classList.remove('hidden');
+    return;
+  }
+
+  // 3. Botão de Apagar (com a confirmação de 2 cliques)
   const v=t.dataset.dv,g=t.dataset.dg,k=t.dataset.dk,id=v||g||k;
   if(!id)return;
   e.stopPropagation();
@@ -456,6 +522,46 @@ document.addEventListener('click',e=>{
   else{const it=S.gram.find(x=>x.id===g);if(it)S.del['g:'+gk(it)]=Date.now();S.gram=S.gram.filter(x=>x.id!==g)}
   save();render();
 });
+
+// Lógica para Salvar e Cancelar a edição
+$('editCancel').onclick = () => {
+  $('editModal').classList.add('hidden');
+  currentEdit = null;
+};
+
+$('editSave').onclick = () => {
+  if(!currentEdit) return;
+  
+  if(currentEdit.type === 'v'){
+    const it = S.vocab.find(x=>x.id===currentEdit.id);
+    if(it){
+      it.kana = $('editKana').value.trim();
+      it.kanji = $('editKanji').value.trim();
+      it.tr = $('editTr').value.trim();
+      it.t = Date.now();
+      // Recalcula o verbo se a pessoa mudou para um verbo terminado em "ます"
+      if(it.kana.endsWith('ます') && it.kana.length>2){
+        it.verb = mkVerb(it.kana, it.kanji, guessGroup(it.kana, it.kanji));
+      } else {
+        delete it.verb;
+      }
+    }
+  } else {
+    const it = S.gram.find(x=>x.id===currentEdit.id);
+    if(it){
+      it.title = $('editTitleField').value.trim();
+      it.expl = $('editExpl').value.trim();
+      it.ex = $('editEx').value.trim();
+      it.t = Date.now();
+    }
+  }
+  
+  save();
+  render();
+  $('editModal').classList.add('hidden');
+  currentEdit = null;
+  toast('Alterações salvas!');
+};
 ['qV','fV','oV'].forEach(i=>$(i).addEventListener('input',renderVd));
 ['qG','fG'].forEach(i=>$(i).addEventListener('input',renderGd));
 ['qK','fK'].forEach(i=>$(i).addEventListener('input',renderKd));
