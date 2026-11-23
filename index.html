@@ -117,10 +117,9 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
 .f3 input,.f4 input{font-family:'Zen Maru Gothic','Nunito',sans-serif}
 @media(max-width:600px){.f3,.f4{grid-template-columns:1fr}}
 .fs-hint{font-size:.8rem;color:#a3b3a0;text-align:center;margin-top:8px;max-width:600px;margin-left:auto;margin-right:auto}
-.install-banner{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom,0px));background:#233127;border:1px solid #8fbf7f;color:#e8e4d2;padding:12px 16px;border-radius:14px;max-width:92vw;z-index:40;display:flex;gap:10px;align-items:center;box-shadow:0 6px 24px #0008;font-size:.95rem}
-.install-banner button{background:#8fbf7f;color:#14210f;border:0;border-radius:10px;padding:8px 12px;font:700 .9rem 'Nunito';cursor:pointer}
-.install-banner{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom,0px));background:#233127;border:1px solid #8fbf7f;color:#e8e4d2;padding:12px 16px;border-radius:14px;max-width:92vw;z-index:40;display:flex;gap:10px;align-items:center;box-shadow:0 6px 24px #0008;font-size:.95rem}
-.install-banner.hidden{display:none !important;} /* <-- A MÁGICA ESTÁ AQUI */
+.btn-install{background:#8fbf7f;color:#14210f;border:0;border-radius:12px;padding:10px 18px;font:700 1rem 'Nunito';cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px #0005}
+.btn-install:hover{filter:brightness(1.1)}
+.btn-install.hidden{display:none !important;}
 </style>
 </head>
 <body>
@@ -220,22 +219,19 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
   </section>
 
   <div class="foot">
-    <button class="btn ghost" id="exp">Salvar backup</button>
-    <button class="btn ghost hidden" id="expInPlace" title="Sobrescreve o arquivo escolhido na última vez">Salvar no arquivo atual</button>
-    <button class="btn ghost hidden" id="forgetFile" title="Esquece o arquivo vinculado">Esquecer arquivo</button>
-    <button class="btn ghost" id="impB">Importar arquivo / backup</button>
-    <input type="file" id="imp" accept=".json" class="hidden">
-  </div>
+    <div class="foot">
+  <button class="btn-install hidden" id="installBtn">Instalar o app</button>
+  <!-- ... seus outros botões (Salvar backup, Importar...) continuam aqui embaixo ... -->
+  <button class="btn ghost" id="exp">Salvar backup</button>
+  <button class="btn ghost hidden" id="expInPlace" title="Sobrescreve o arquivo escolhido na última vez">Salvar no arquivo atual</button>
+  <button class="btn ghost hidden" id="forgetFile" title="Esquece o arquivo vinculado">Esquecer arquivo</button>
+  <button class="btn ghost" id="impB">Importar arquivo / backup</button>
+  <input type="file" id="imp" accept=".json" class="hidden">
+</div>
   <p class="fs-hint" id="fsHint"></p>
   <p class="hint" style="text-align:center;margin-top:12px;line-height:1.5">Atenção: a sua lista fica salva só neste aparelho e neste navegador. Se você limpar os dados do site ou do navegador, a lista some. Use “Salvar backup” de vez em quando.</p>
 </div>
 
-<!-- Banner de instalação (aparece só quando o navegador permite instalar) -->
-<div id="installBanner" class="install-banner hidden" role="dialog" aria-label="Instalar aplicativo">
-  <span>Instalar o Caderninho como app?</span>
-  <button id="installBtn">Instalar</button>
-  <button id="installClose" class="close" aria-label="Fechar">×</button>
-</div>
 
 <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 <noscript><p style="text-align:center;color:#a3b3a0">Este caderninho precisa de JavaScript para funcionar.</p></noscript>
@@ -659,37 +655,37 @@ if('serviceWorker' in navigator){
     });
   });
 }
+
 let deferredPrompt=null;
-const banner=$('installBanner');
+const installBtn=document.getElementById('installBtn');
+
+// O navegador avisa que o app pode ser instalado
 window.addEventListener('beforeinstallprompt',e=>{
   e.preventDefault();
   deferredPrompt=e;
-  // Só mostra se o usuário nunca fechou antes
-  if(!localStorage.getItem('pwa-dismissed')){
-    banner.classList.remove('hidden');
-  }
+  installBtn.classList.remove('hidden'); // Mostra o botão no rodapé
 });
 
-$('installBtn').onclick=async()=>{
+// Se o usuário clicar no botão de instalar
+installBtn.onclick=async()=>{
   if(!deferredPrompt){
-    banner.classList.add('hidden');
+    installBtn.classList.add('hidden');
     return;
   }
   deferredPrompt.prompt();
-  try{await deferredPrompt.userChoice}catch(e){}
+  const { outcome } = await deferredPrompt.userChoice;
+  if(outcome === 'accepted'){
+    installBtn.classList.add('hidden'); // Esconde o botão se ele aceitou
+  }
   deferredPrompt=null;
-  banner.classList.add('hidden');
 };
 
-$('installClose').onclick=()=>{
-  localStorage.setItem('pwa-dismissed','1'); // Salva a decisão no navegador
-  banner.classList.add('hidden');             // Esconde a janela
-};
-
+// Quando o app é instalado com sucesso
 window.addEventListener('appinstalled',()=>{
-  banner.classList.add('hidden');
+  installBtn.classList.add('hidden');
   deferredPrompt=null;
   toast('App instalado! Procure o ícone na tela inicial.');
+});
 });
 });
 </script>
