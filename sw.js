@@ -7,7 +7,7 @@
    - Requisições cross-origin que não sejam fontes: passa direto (não intercepta).
 */
 
-const VERSION = 'v11';
+const VERSION = 'v12';
 const APP_CACHE = 'nihongo-app-' + VERSION;
 const RUNTIME_CACHE = 'nihongo-runtime-' + VERSION;
 
