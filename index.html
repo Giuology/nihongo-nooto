@@ -342,14 +342,7 @@ function renderG(){
   $('listG').innerHTML=g.map(([c,it])=>`<details class="chap" ${open?'open':''}><summary>Capítulo ${c}<span class="count">${it.length} regras</span></summary>
   ${it.map(x=>`<div class="gram"><h3>${hl(x.title,q)}<span class="row-actions"><button class="x edit" data-eg="${x.id}" title="Editar">✏️</button><button class="x" data-dg="${x.id}" title="Apagar">×</button></span></h3>${x.expl?`<p>${hl(x.expl,q)}</p>`:''}${x.ex?`<div class="ex">${hl(x.ex,q)}</div>`:''}</div>`).join('')}</details>`).join('');
 }
-function renderK(){
-  const q=$('qK').value,g=group(S.kanji,q,$('fK').value);
-  if(!S.kanji.length){$('listK').innerHTML='<div class="empty">Nenhum kanji ainda.<br>Adicione os kanji do capítulo que você estudou.</div>';return}
-  if(!g.length){$('listK').innerHTML='<div class="empty">Nada encontrado</div>';return}
-  const open=q.trim()||g.length===1;
-  $('listK').innerHTML=g.map(([c,it])=>`<details class="chap" ${open?'open':''}><summary>Capítulo ${c}<span class="count">${it.length} kanji</span></summary>
-  ${it.map(x=>`<div class="krow"><span class="kk">${hl(x.kanji,q)}</span><div class="kinfo"><div><b>Kun</b><span class="r">${hl(x.kun||'—',q)}</span></div><div><b>On</b><span class="r">${hl(x.on||'—',q)}</span></div><div class="kt">${hl(x.tr,q)}</div></div><button class="x" data-dk="${x.id}" aria-label="Apagar">×</button></div>`).join('')}</details>`).join('');
-}
+${it.map(x=>`<div class="krow"><span class="kk">${hl(x.kanji,q)}</span><div class="kinfo"><div><b>Kun</b><span class="r">${hl(x.kun||'—',q)}</span></div><div><b>On</b><span class="r">${hl(x.on||'—',q)}</span></div><div class="kt">${hl(x.tr,q)}</div></div><span class="row-actions"><button class="x edit" data-ek="${x.id}" title="Editar">✏️</button><button class="x" data-dk="${x.id}" title="Apagar">×</button></span></div>`).join('')}
 let lastV='',lastG='',lastK='';
 function refreshSels(){
   const sv=JSON.stringify(chapters(S.vocab)),sg=JSON.stringify(chapters(S.gram)),sk=JSON.stringify(chapters(S.kanji));
@@ -495,28 +488,39 @@ document.addEventListener('click',e=>{
   }
 
   // 2. Botão de Editar (Lápis)
-  const ev=t.dataset.ev, eg=t.dataset.eg;
-  if(ev || eg){
+  const ev=t.dataset.ev, eg=t.dataset.eg, ek=t.dataset.ek;
+  if(ev || eg || ek){
     e.stopPropagation();
-    currentEdit = { type: ev ? 'v' : 'g', id: ev || eg };
+    currentEdit = { type: ev ? 'v' : (eg ? 'g' : 'k'), id: ev || eg || ek };
     const modal = $('editModal');
     
+    // Esconde todos os grupos de campos primeiro
+    $('editVocabFields').style.display = 'none';
+    $('editGramFields').style.display = 'none';
+    $('editKFields').style.display = 'none';
+
     if(currentEdit.type === 'v'){
       const it = S.vocab.find(x=>x.id===currentEdit.id);
       $('editTitle').textContent = 'Editar palavra';
       $('editVocabFields').style.display = 'grid';
-      $('editGramFields').style.display = 'none';
       $('editKana').value = it.kana;
       $('editKanji').value = it.kanji;
       $('editTr').value = it.tr;
-    } else {
+    } else if(currentEdit.type === 'g') {
       const it = S.gram.find(x=>x.id===currentEdit.id);
       $('editTitle').textContent = 'Editar regra';
-      $('editVocabFields').style.display = 'none';
       $('editGramFields').style.display = 'grid';
       $('editTitleField').value = it.title;
       $('editExpl').value = it.expl;
       $('editEx').value = it.ex;
+    } else {
+      const it = S.kanji.find(x=>x.id===currentEdit.id);
+      $('editTitle').textContent = 'Editar kanji';
+      $('editKFields').style.display = 'grid';
+      $('editKanjiField').value = it.kanji;
+      $('editKun').value = it.kun || '';
+      $('editOn').value = it.on || '';
+      $('editKTr').value = it.tr;
     }
     modal.classList.remove('hidden');
     return;
@@ -534,19 +538,8 @@ document.addEventListener('click',e=>{
   save();render();
 });
 
-// Lógica para Salvar e Cancelar a edição
-const btnCancel = $('editCancel');
+// Lógica para Salvar a edição
 const btnSave = $('editSave');
-const modal = $('editModal');
-
-if (btnCancel) {
-  btnCancel.onclick = (ev) => {
-    ev.preventDefault();
-    modal.classList.add('hidden');
-    currentEdit = null;
-  };
-}
-
 if (btnSave) {
   btnSave.onclick = (ev) => {
     ev.preventDefault();
@@ -565,7 +558,7 @@ if (btnSave) {
           delete it.verb;
         }
       }
-    } else {
+    } else if(currentEdit.type === 'g') {
       const it = S.gram.find(x=>x.id===currentEdit.id);
       if(it){
         it.title = $('editTitleField').value.trim();
@@ -573,16 +566,24 @@ if (btnSave) {
         it.ex = $('editEx').value.trim();
         it.t = Date.now();
       }
+    } else {
+      const it = S.kanji.find(x=>x.id===currentEdit.id);
+      if(it){
+        it.kanji = $('editKanjiField').value.trim();
+        it.kun = $('editKun').value.trim();
+        it.on = $('editOn').value.trim();
+        it.tr = $('editKTr').value.trim();
+        it.t = Date.now();
+      }
     }
     
     save();
     render();
-    modal.classList.add('hidden');
+    $('editModal').classList.add('hidden');
     currentEdit = null;
     toast('Alterações salvas!');
   };
 }
-
 ['qV','fV','oV'].forEach(i=>$(i).addEventListener('input',renderVd));
 ['qG','fG'].forEach(i=>$(i).addEventListener('input',renderGd));
 ['qK','fK'].forEach(i=>$(i).addEventListener('input',renderKd));
