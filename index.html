@@ -674,7 +674,9 @@ $('installBtn').onclick=async()=>{
 };
 $('installClose').onclick=()=>{
   localStorage.setItem('pwa-dismissed','1');
+  banner.classList.remove('install-banner'); /* <-- ADICIONE ESTA LINHA */
   banner.classList.add('hidden');
+};
 };
 window.addEventListener('appinstalled',()=>{
   banner.classList.add('hidden');
