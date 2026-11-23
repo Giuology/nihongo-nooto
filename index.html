@@ -75,7 +75,7 @@ label{font-size:.85rem;color:#a3b3a0;font-weight:600}
 .empty{text-align:center;color:#a3b3a0;padding:40px 10px;border:2px dashed #34483a;border-radius:18px}
 .foot{display:flex;gap:10px;flex-wrap:wrap;margin-top:30px;justify-content:center}
 mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
-.hidden{display:none}
+.hidden{display:none !important;}
 @media(max-width:600px){
   body{font-size:17px}
   .hd{display:none}
@@ -92,7 +92,7 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
 @media(max-width:600px){.prow{grid-template-columns:1fr 1fr 34px}.prow input:nth-child(3){grid-column:1/3}.prow .x{grid-row:1/3;grid-column:3}}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:#f1e9c9;color:#1b2a1c;padding:14px 20px;border-radius:14px;font-weight:700;max-width:92vw;z-index:50;box-shadow:0 6px 24px #0008}
 .x.arm{color:#c97b72;font:700 .8rem 'Nunito';width:auto;padding:0 6px}
-  .row-actions { display: flex; gap: 4px; justify-content: flex-end; align-items: center; }
+.row-actions { display: flex; gap: 4px; justify-content: flex-end; align-items: center; }
 .x.edit { color: #8fbf7f; font-size: 1rem; }
 .x.edit:hover { color: #b7d3a8; }
 .vb{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;font:600 .95rem 'Nunito',sans-serif;color:#a3b3a0;padding:4px 0 6px}
@@ -122,7 +122,6 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
 .fs-hint{font-size:.8rem;color:#a3b3a0;text-align:center;margin-top:8px;max-width:600px;margin-left:auto;margin-right:auto}
 .btn-install{background:#8fbf7f;color:#14210f;border:0;border-radius:12px;padding:10px 18px;font:700 1rem 'Nunito';cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px #0005}
 .btn-install:hover{filter:brightness(1.1)}
-.btn-install.hidden{display:none !important;}
 </style>
 </head>
 <body>
@@ -232,10 +231,11 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
   <p class="fs-hint" id="fsHint"></p>
   
   <p class="hint" style="text-align:center;margin-top:12px;line-height:1.5">Atenção: a sua lista fica salva só neste aparelho e neste navegador. Se você limpar os dados do site ou do navegador, a lista some. Use “Salvar backup” de vez em quando.</p>
-
+</div>
 
 <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <!-- Modal de Edição (fica escondido por padrão) -->
+
+<!-- Modal de Edição -->
 <div id="editModal" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000c;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;">
   <div style="background:#1c271f;border:1px solid #34483a;border-radius:18px;padding:20px;max-width:400px;width:100%;display:grid;gap:12px;">
     <h3 style="margin:0;color:#f1e9c9;font:700 1.2rem 'Fraunces',serif;" id="editTitle">Editar palavra</h3>
@@ -267,7 +267,7 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
 <noscript><p style="text-align:center;color:#a3b3a0">Este caderninho precisa de JavaScript para funcionar.</p></noscript>
 <script>
 'use strict';
-let tt;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.remove('hidden');clearTimeout(tt);tt=setTimeout(()=>t.classList.add('hidden'),6000)}
+let tt;function toast(m){const t=document.getElementById('toast');if(!t)return;t.textContent=m;t.classList.remove('hidden');clearTimeout(tt);tt=setTimeout(()=>t.classList.add('hidden'),6000)}
 const KEY='nihongo-cottage-v1';
 const MAXCH=50;
 let S={vocab:[],gram:[],kanji:[],del:{}};
@@ -302,6 +302,7 @@ const wd=a=>{const k=a[0],j=a[1];return j&&j!==k?`<ruby>${esc(j)}<rt>${esc(k)}</
 const vb=(v,id)=>`<div class="vb"><span class="g g${v.g}"${v.auto?` data-gx="${id}" title="Toque para trocar o grupo" style="cursor:pointer"`:''}>Grupo ${['','I','II','III'][v.g]}${v.auto?' ⟳':''}</span><span><b>Jisho</b>${wd(v.j)}</span><span><b>Te</b>${wd(v.te)}</span><span><b>Nai</b>${wd(v.nai)}</span>${v.auto?'<span class="autoc">automático: confira (toque no grupo para trocar)</span>':''}</div>`;
 function chapters(arr){return [...new Set(arr.map(x=>x.ch))].sort((a,b)=>a-b)}
 function fillSel(sel,arr){
+  if(!sel)return;
   const cur=sel.value;
   sel.innerHTML='<option value="all">Todos os capítulos</option>'+chapters(arr).map(c=>`<option value="${c}">Capítulo ${c}</option>`).join('');
   sel.value=[...sel.options].some(o=>o.value===cur)?cur:'all';
@@ -468,20 +469,20 @@ function mkVerb(k,kj,g){
   return {g,j:out[0],te:out[1],nai:out[2],auto:true};
 }
 let armed=null;
-let currentEdit=null; // Guarda o que está sendo editado
+let currentEdit=null;
 
 document.addEventListener('click',e=>{
   const t=e.target;
   const gx=t.dataset&&t.dataset.gx;
   
-  // 1. Trocar grupo verbal (aquele botãozinho de Grupo I/II/III)
+  // 1. Trocar grupo verbal
   if(gx){
     e.stopPropagation();
     const it=S.vocab.find(x=>x.id===gx);if(!it||!it.verb)return;
     it.verb=mkVerb(it.kana,it.kanji,(it.verb.g%3)+1);it.t=Date.now();save();renderV();return;
   }
 
-  // 2. NOVO: Botão de Editar (Lápis)
+  // 2. Botão de Editar (Lápis)
   const ev=t.dataset.ev, eg=t.dataset.eg;
   if(ev || eg){
     e.stopPropagation();
@@ -509,7 +510,7 @@ document.addEventListener('click',e=>{
     return;
   }
 
-  // 3. Botão de Apagar (com a confirmação de 2 cliques)
+  // 3. Botão de Apagar
   const v=t.dataset.dv,g=t.dataset.dg,k=t.dataset.dk,id=v||g||k;
   if(!id)return;
   e.stopPropagation();
@@ -522,56 +523,54 @@ document.addEventListener('click',e=>{
 });
 
 // Lógica para Salvar e Cancelar a edição
-// Lógica para Salvar e Cancelar a edição
-window.addEventListener('load', () => {
-  const btnCancel = document.getElementById('editCancel');
-  const btnSave = document.getElementById('editSave');
-  const modal = document.getElementById('editModal');
+const btnCancel = $('editCancel');
+const btnSave = $('editSave');
+const modal = $('editModal');
 
-  if (btnCancel) {
-    btnCancel.onclick = (ev) => {
-      ev.preventDefault();
-      modal.classList.add('hidden');
-      currentEdit = null;
-    };
-  }
+if (btnCancel) {
+  btnCancel.onclick = (ev) => {
+    ev.preventDefault();
+    modal.classList.add('hidden');
+    currentEdit = null;
+  };
+}
 
-  if (btnSave) {
-    btnSave.onclick = (ev) => {
-      ev.preventDefault();
-      if(!currentEdit) return;
-      
-      if(currentEdit.type === 'v'){
-        const it = S.vocab.find(x=>x.id===currentEdit.id);
-        if(it){
-          it.kana = document.getElementById('editKana').value.trim();
-          it.kanji = document.getElementById('editKanji').value.trim();
-          it.tr = document.getElementById('editTr').value.trim();
-          it.t = Date.now();
-          if(it.kana.endsWith('ます') && it.kana.length>2){
-            it.verb = mkVerb(it.kana, it.kanji, guessGroup(it.kana, it.kanji));
-          } else {
-            delete it.verb;
-          }
-        }
-      } else {
-        const it = S.gram.find(x=>x.id===currentEdit.id);
-        if(it){
-          it.title = document.getElementById('editTitleField').value.trim();
-          it.expl = document.getElementById('editExpl').value.trim();
-          it.ex = document.getElementById('editEx').value.trim();
-          it.t = Date.now();
+if (btnSave) {
+  btnSave.onclick = (ev) => {
+    ev.preventDefault();
+    if(!currentEdit) return;
+    
+    if(currentEdit.type === 'v'){
+      const it = S.vocab.find(x=>x.id===currentEdit.id);
+      if(it){
+        it.kana = $('editKana').value.trim();
+        it.kanji = $('editKanji').value.trim();
+        it.tr = $('editTr').value.trim();
+        it.t = Date.now();
+        if(it.kana.endsWith('ます') && it.kana.length>2){
+          it.verb = mkVerb(it.kana, it.kanji, guessGroup(it.kana, it.kanji));
+        } else {
+          delete it.verb;
         }
       }
-      
-      save();
-      render();
-      modal.classList.add('hidden');
-      currentEdit = null;
-      toast('Alterações salvas!');
-    };
-  }
-});
+    } else {
+      const it = S.gram.find(x=>x.id===currentEdit.id);
+      if(it){
+        it.title = $('editTitleField').value.trim();
+        it.expl = $('editExpl').value.trim();
+        it.ex = $('editEx').value.trim();
+        it.t = Date.now();
+      }
+    }
+    
+    save();
+    render();
+    modal.classList.add('hidden');
+    currentEdit = null;
+    toast('Alterações salvas!');
+  };
+}
+
 ['qV','fV','oV'].forEach(i=>$(i).addEventListener('input',renderVd));
 ['qG','fG'].forEach(i=>$(i).addEventListener('input',renderGd));
 ['qK','fK'].forEach(i=>$(i).addEventListener('input',renderKd));
@@ -620,8 +619,6 @@ const FS_OK = (typeof window!=='undefined') && ('showSaveFilePicker' in window) 
 let backupHandle=null;
 function updateFsUI(){
   const hint=$('fsHint');
-  
-  // Se o elemento não existir no HTML, ele apenas ignora e não quebra o site
   if (!hint) return; 
 
   if(!FS_OK){
@@ -680,8 +677,8 @@ $('exp').onclick=async()=>{
   a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));
   a.download=fileNameSugerido();document.body.appendChild(a);a.click();a.remove();
 };
-$('expInPlace').onclick=salvarNoArquivoAtual;
-$('forgetFile').onclick=async()=>{
+if($('expInPlace')) $('expInPlace').onclick=salvarNoArquivoAtual;
+if($('forgetFile')) $('forgetFile').onclick=async()=>{
   backupHandle=null;
   try{await idbDel(IDB_KEY)}catch(e){}
   updateFsUI();
@@ -779,30 +776,29 @@ if('serviceWorker' in navigator){
 let deferredPrompt=null;
 const installBtn=document.getElementById('installBtn');
 
-// O navegador avisa que o app pode ser instalado
-window.addEventListener('beforeinstallprompt',e=>{
-  e.preventDefault();
-  deferredPrompt=e;
-  installBtn.classList.remove('hidden'); // Mostra o botão no rodapé
-});
+if(installBtn){
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault();
+    deferredPrompt=e;
+    installBtn.classList.remove('hidden');
+  });
 
-// Se o usuário clicar no botão de instalar
-installBtn.onclick=async()=>{
-  if(!deferredPrompt){
-    installBtn.classList.add('hidden');
-    return;
-  }
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  if(outcome === 'accepted'){
-    installBtn.classList.add('hidden'); // Esconde o botão se ele aceitou
-  }
-  deferredPrompt=null;
-};
+  installBtn.onclick=async()=>{
+    if(!deferredPrompt){
+      installBtn.classList.add('hidden');
+      return;
+    }
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if(outcome === 'accepted'){
+      installBtn.classList.add('hidden');
+    }
+    deferredPrompt=null;
+  };
+}
 
-// Quando o app é instalado com sucesso
 window.addEventListener('appinstalled',()=>{
-  installBtn.classList.add('hidden');
+  if(installBtn) installBtn.classList.add('hidden');
   deferredPrompt=null;
   toast('App instalado! Procure o ícone na tela inicial.');
 });
