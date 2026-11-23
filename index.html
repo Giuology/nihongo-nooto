@@ -221,7 +221,7 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
     <div id="listK"></div>
   </section>
 
-    <div class="foot">
+  <div class="foot">
     <button class="btn-install hidden" id="installBtn">Instalar o app</button>
     <button class="btn ghost" id="exp">Salvar backup</button>
     <button class="btn ghost hidden" id="expInPlace" title="Sobrescreve o arquivo escolhido na última vez">Salvar no arquivo atual</button>
@@ -229,6 +229,11 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
     <button class="btn ghost" id="impB">Importar arquivo / backup</button>
     <input type="file" id="imp" accept=".json" class="hidden">
   </div>
+  
+  <!-- COLOQUE ESTA LINHA AQUI -->
+  <p class="fs-hint" id="fsHint"></p>
+  
+  <p class="hint" style="text-align:center;margin-top:12px;line-height:1.5">Atenção: a sua lista fica salva só neste aparelho e neste navegador. Se você limpar os dados do site ou do navegador, a lista some. Use “Salvar backup” de vez em quando.</p>
 
 
 <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
