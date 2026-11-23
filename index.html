@@ -664,25 +664,33 @@ const banner=$('installBanner');
 window.addEventListener('beforeinstallprompt',e=>{
   e.preventDefault();
   deferredPrompt=e;
-  if(!localStorage.getItem('pwa-dismissed'))banner.classList.remove('hidden');
+  // Só mostra se o usuário nunca fechou antes
+  if(!localStorage.getItem('pwa-dismissed')){
+    banner.classList.remove('hidden');
+  }
 });
+
 $('installBtn').onclick=async()=>{
-  if(!deferredPrompt){banner.classList.add('hidden');return}
+  if(!deferredPrompt){
+    banner.classList.add('hidden');
+    return;
+  }
   deferredPrompt.prompt();
   try{await deferredPrompt.userChoice}catch(e){}
   deferredPrompt=null;
   banner.classList.add('hidden');
 };
+
 $('installClose').onclick=()=>{
-  localStorage.setItem('pwa-dismissed','1');
-  banner.classList.remove('install-banner'); /* <-- ADICIONE ESTA LINHA */
-  banner.classList.add('hidden');
+  localStorage.setItem('pwa-dismissed','1'); // Salva a decisão no navegador
+  banner.classList.add('hidden');             // Esconde a janela
 };
-};
+
 window.addEventListener('appinstalled',()=>{
   banner.classList.add('hidden');
   deferredPrompt=null;
   toast('App instalado! Procure o ícone na tela inicial.');
+});
 });
 </script>
 </body>
