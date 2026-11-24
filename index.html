@@ -220,6 +220,18 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
     <div id="listK"></div>
   </section>
 
+  <details class="panel" id="syncP" style="margin-top:30px">
+    <summary>Sincronizar PC e celular</summary>
+    <div class="in">
+      <p class="hint">Cole o mesmo endereço e o mesmo código nos dois aparelhos. Depois disso, tudo que você adicionar ou apagar aparece nos dois.</p>
+      <label for="sUrl">Endereço do servidor (Firebase ou o seu próprio)</label>
+      <input id="sUrl" placeholder="https://SEU-PROJETO-default-rtdb.firebaseio.com  ou  https://seu-servidor.ts.net" autocapitalize="off" autocomplete="off">
+      <label for="sCode">Código secreto (uma frase longa que só você sabe)</label>
+      <input id="sCode" placeholder="ex.: gato-verde-chuva-2026-minha-lista" autocapitalize="off" autocomplete="off">
+      <button class="btn" id="sGo">Salvar e sincronizar</button>
+      <p class="hint" id="sSt"></p>
+    </div>
+  </details>
   <div class="foot">
     <button class="btn-install hidden" id="installBtn">Instalar o app</button>
     <button class="btn ghost" id="exp">Salvar backup</button>
@@ -239,7 +251,6 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
 <div id="editModal" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000c;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;">
   <div style="background:#1c271f;border:1px solid #34483a;border-radius:18px;padding:20px;max-width:400px;width:100%;display:grid;gap:12px;max-height:90vh;overflow-y:auto;">
     <h3 style="margin:0;color:#f1e9c9;font:700 1.2rem 'Fraunces',serif;" id="editTitle">Editar palavra</h3>
-    
     <div id="editVocabFields" style="display:grid;gap:8px;">
       <label>Furigana</label>
       <input id="editKana" type="text">
@@ -248,7 +259,6 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
       <label>Tradução</label>
       <input id="editTr" type="text">
     </div>
-
     <div id="editGramFields" style="display:none;gap:8px;">
       <label>Padrão da regra</label>
       <input id="editTitleField" type="text">
@@ -257,8 +267,6 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
       <label>Exemplos</label>
       <textarea id="editEx" style="min-height:80px;"></textarea>
     </div>
-
-    <!-- Campos do Kanji -->
     <div id="editKFields" style="display:none;gap:8px;">
       <label>Kanji</label>
       <input id="editKanjiField" type="text">
@@ -269,7 +277,6 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
       <label>Significado</label>
       <input id="editKTr" type="text">
     </div>
-
     <div style="display:flex;gap:10px;margin-top:10px;">
       <button class="btn" id="editSave" style="flex:1;">Salvar</button>
       <button class="btn ghost" id="editCancel" style="flex:1;">Cancelar</button>
@@ -289,6 +296,7 @@ let saveWarned=false;
 function save(){
   try{localStorage.setItem(KEY,JSON.stringify(S))}
   catch(e){if(!saveWarned){saveWarned=true;toast('Não consegui salvar no aparelho (armazenamento cheio ou bloqueado). Faça um backup e libere espaço.')}}
+  schedSync();
 }
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -385,8 +393,9 @@ const IDS={v:{p:'prevV',ch:'vCh',t:'vTxt'},g:{p:'prevG',ch:'gCh',t:'gTxt'}};
 });
 function splitF(l){
   if(/[|\t]/.test(l))return l.split(/\||\t/).map(x=>x.trim());
-  const s=' '+l.trim().replace(/ [-–—] [-–—] /g,' \u0000 \u0000 ')+' ';
-  return s.trim().split(/ [-–—] /).map(x=>x.trim()==='\u0000'?'':x.trim());
+  let s=' '+l.trim()+' ';
+  while(/ [-–—] [-–—] /.test(s))s=s.replace(/ ([-–—]) ([-–—]) /,' $1 \u0001 $2 ');
+  return s.trim().split(/ [-–—] /).map(x=>{x=x.trim();return x==='\u0001'?'':x});
 }
 function localVocab(t){
   return t.split('\n').map(l=>splitF(l)).filter(p=>p.length>=2&&p[0]).map(p=>p.length>=3?{kana:p[0],kanji:p[1],tr:p.slice(2).join(' - ')}:{kana:p[0],kanji:'',tr:p[1]});
@@ -410,6 +419,8 @@ function organize(k){
   const clean=x=>Object.fromEntries(Object.entries(x).map(([a,b])=>[a,String(b==null?'':b)]));
   pend[k]={ch,items:items.map(clean)};drawPrev(k);
 }
+$('orgV').onclick=()=>organize('v');
+$('orgG').onclick=()=>organize('g');
 function drawPrev(k){
   const p=pend[k],el=$(IDS[k].p);
   if(!p||!p.items.length){el.innerHTML='';return}
@@ -442,10 +453,10 @@ const ICHI=['み','い','おき','あび','おり','かり','でき','たり','�
 const SURU=['べんきょう','けんきゅう','しょくじ','けっこん','かいもの','さんぽ','しんぱい','ざんぎょう','しゅっちょう','りょこう','れんしゅう','せんたく','そうじ','じゅんび','しつもん','りょうり','でんわ','しゅうり','せつめい','しょうかい','よやく','うんてん','そつぎょう','にゅうがく','ようい','れんらく','かんげい','しょうたい','あんない','せいり'];
 function guessGroup(k,kj){
   kj=kj||'';
-  if(kj.endsWith('来ます')||/てきます$/.test(k))return 3;
+  if(kj.endsWith('来ます')||(k==='きます'&&!kj.endsWith('着ます'))||/てきます$/.test(k))return 3;
   if(k==='します'||/^[ァ-ヶー]+します$/.test(k)||/[一-龥]{2,}します$/.test(kj)||SURU.some(n=>k===n+'します'))return 3;
   const st=k.slice(0,-2),l=st.slice(-1);
-  if('えけげせぜてでねべぺめれ'.includes(l))return 2;
+  if(l&&'えけげせぜてでねべぺめれ'.includes(l))return 2;
   if(kj.endsWith('着ます')||kj.endsWith('見ます')||kj.endsWith('降ります')||kj.endsWith('借ります')||kj.endsWith('起きます')||kj.endsWith('浴びます'))return 2;
   if(!kj&&ICHI.includes(st))return 2;
   if(kj&&ICHI.includes(st)&&!kj.includes('置')&&!kj.includes('折'))return 2;
@@ -468,7 +479,8 @@ function mkVerb(k,kj,g){
     if(!u){g=2;fs=[st+'る',st+'て',st+'ない']}
     else{
       const j=st.slice(0,-1)+u,b=j.slice(0,-1),e=j.slice(-1);
-      if(j.endsWith('いく'))fs=[j,b+'って',b+'かない'];
+      if(j==='ある')fs=[j,'あって','ない'];
+      else if(j.endsWith('いく'))fs=[j,b+'って',b+'かない'];
       else fs=[j,b+TEF[e],b+NAF[e]];
     }
   }
@@ -486,23 +498,19 @@ let currentEdit=null;
 document.addEventListener('click',e=>{
   const t=e.target;
   const gx=t.dataset&&t.dataset.gx;
-  
   if(gx){
     e.stopPropagation();
     const it=S.vocab.find(x=>x.id===gx);if(!it||!it.verb)return;
     it.verb=mkVerb(it.kana,it.kanji,(it.verb.g%3)+1);it.t=Date.now();save();renderV();return;
   }
-
   const ev=t.dataset.ev, eg=t.dataset.eg, ek=t.dataset.ek;
   if(ev || eg || ek){
     e.stopPropagation();
     currentEdit = { type: ev ? 'v' : (eg ? 'g' : 'k'), id: ev || eg || ek };
     const modal = $('editModal');
-    
     $('editVocabFields').style.display = 'none';
     $('editGramFields').style.display = 'none';
     $('editKFields').style.display = 'none';
-
     if(currentEdit.type === 'v'){
       const it = S.vocab.find(x=>x.id===currentEdit.id);
       $('editTitle').textContent = 'Editar palavra';
@@ -529,22 +537,21 @@ document.addEventListener('click',e=>{
     modal.classList.remove('hidden');
     return;
   }
-
   const v=t.dataset.dv,g=t.dataset.dg,k=t.dataset.dk,id=v||g||k;
   if(!id)return;
   e.stopPropagation();
   if(armed!==id){armed=id;t.textContent='Apagar?';t.classList.add('arm');setTimeout(()=>{if(armed===id){armed=null;t.textContent='×';t.classList.remove('arm')}},3000);return}
   armed=null;
-  if(k){const it=S.kanji.find(x=>x.id===k);if(it)S.del['k:'+kk(it)]=Date.now();S.kanji=S.kanji.filter(x=>x.id!==k)}
-  else if(v){const it=S.vocab.find(x=>x.id===v);if(it)S.del['v:'+vk(it)]=Date.now();S.vocab=S.vocab.filter(x=>x.id!==v)}
-  else{const it=S.gram.find(x=>x.id===g);if(it)S.del['g:'+gk(it)]=Date.now();S.gram=S.gram.filter(x=>x.id!==g)}
+  const now=Date.now();
+  if(k){const it=S.kanji.find(x=>x.id===k);if(it){S.del['k:'+kk(it)]=now;S.del['i:'+it.id]=now}S.kanji=S.kanji.filter(x=>x.id!==k)}
+  else if(v){const it=S.vocab.find(x=>x.id===v);if(it){S.del['v:'+vk(it)]=now;S.del['i:'+it.id]=now}S.vocab=S.vocab.filter(x=>x.id!==v)}
+  else{const it=S.gram.find(x=>x.id===g);if(it){S.del['g:'+gk(it)]=now;S.del['i:'+it.id]=now}S.gram=S.gram.filter(x=>x.id!==g)}
   save();render();
 });
 
 const btnCancel = $('editCancel');
 const btnSave = $('editSave');
 const modal = $('editModal');
-
 if (btnCancel) {
   btnCancel.onclick = (ev) => {
     ev.preventDefault();
@@ -552,12 +559,10 @@ if (btnCancel) {
     currentEdit = null;
   };
 }
-
 if (btnSave) {
   btnSave.onclick = (ev) => {
     ev.preventDefault();
     if(!currentEdit) return;
-    
     if(currentEdit.type === 'v'){
       const it = S.vocab.find(x=>x.id===currentEdit.id);
       if(it){
@@ -589,7 +594,6 @@ if (btnSave) {
         it.t = Date.now();
       }
     }
-    
     save();
     render();
     $('editModal').classList.add('hidden');
@@ -647,7 +651,6 @@ let backupHandle=null;
 function updateFsUI(){
   const hint=$('fsHint');
   if (!hint) return; 
-
   if(!FS_OK){
     if($('expInPlace')) $('expInPlace').classList.add('hidden');
     if($('forgetFile')) $('forgetFile').classList.add('hidden');
@@ -789,6 +792,55 @@ function addKManual(){
 $('addKBtn').onclick=addKManual;
 ['kKa','kKu','kOn','kTr'].forEach(i=>$(i).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addKManual()}}));
 
+const SK='nihongo-sync-v1';let cfg={};try{cfg=JSON.parse(localStorage.getItem(SK)||'{}')}catch(e){}
+$('sUrl').value=cfg.url||(location.protocol.startsWith('http')?location.origin:'');$('sCode').value=cfg.code||'';
+const sst=m=>{$('sSt').textContent=m};
+function merge(a,b){
+  const del={...(a.del||{})};
+  for(const [k,t] of Object.entries(b.del||{}))del[k]=Math.max(del[k]||0,t);
+  const mg=(xs,ys,kf,pre)=>{
+    const byId=new Map();
+    [...xs,...ys].forEach(x=>{
+      if(!x||typeof x!=='object')return;
+      x.id=x.id||uid();
+      const o=byId.get(x.id);
+      if(!o||(x.t||0)>(o.t||0))byId.set(x.id,x);
+    });
+    const byKey=new Map();
+    [...byId.values()].forEach(x=>{
+      const k=kf(x),o=byKey.get(k);
+      if(!o||(x.t||0)>(o.t||0)||((x.t||0)===(o.t||0)&&x.verb&&!o.verb))byKey.set(k,x);
+    });
+    return [...byKey].filter(([k,x])=>{const d=Math.max(del[pre+k]||0,del['i:'+x.id]||0);return !(d&&d>=(x.t||0))}).map(([k,x])=>x);
+  };
+  return {vocab:mg(a.vocab||[],b.vocab||[],vk,'v:'),gram:mg(a.gram||[],b.gram||[],gk,'g:'),kanji:mg(a.kanji||[],b.kanji||[],kk,'k:'),del};
+}
+let busy=false,tmr;
+function schedSync(){clearTimeout(tmr);if(cfg.url&&cfg.code)tmr=setTimeout(syncNow,1500)}
+async function syncNow(){
+  if(!cfg.url||!cfg.code||busy)return;busy=true;
+  const u=cfg.url.replace(/\/+$/,'')+'/nihongo/'+encodeURIComponent(cfg.code)+'.json';
+  try{
+    sst('Sincronizando…');
+    const r=await fetch(u);if(!r.ok)throw new Error('HTTP '+r.status);
+    const remote=(await r.json())||{};
+    const m=merge(S,remote);S.vocab=m.vocab;S.gram=m.gram;S.kanji=m.kanji;S.del=m.del;
+    try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+    render();
+    const w=await fetch(u,{method:'PUT',body:JSON.stringify(S)});if(!w.ok)throw new Error('HTTP '+w.status);
+    sst('Sincronizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));
+  }catch(e){sst('Não consegui sincronizar ('+(e.message||'erro')+'). Confira o endereço, as regras do banco e a internet.')}
+  busy=false;
+}
+$('sGo').onclick=()=>{
+  cfg={url:$('sUrl').value.trim(),code:$('sCode').value.trim()};
+  if(!/^https?:\/\/.+/.test(cfg.url)||cfg.code.length<8){toast('Use o endereço completo (http://… ou https://…) e um código com pelo menos 8 caracteres.');return}
+  try{localStorage.setItem(SK,JSON.stringify(cfg))}catch(e){}
+  syncNow();
+};
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncNow()});
+setInterval(()=>{if(!document.hidden)syncNow()},60000);
+if(cfg.url)syncNow();
 render();
 
 /* ================= PWA: registro do service worker + instalação ================= */
@@ -799,17 +851,14 @@ if('serviceWorker' in navigator){
     });
   });
 }
-
 let deferredPrompt=null;
 const installBtn=document.getElementById('installBtn');
-
 if(installBtn){
   window.addEventListener('beforeinstallprompt',e=>{
     e.preventDefault();
     deferredPrompt=e;
     installBtn.classList.remove('hidden');
   });
-
   installBtn.onclick=async()=>{
     if(!deferredPrompt){
       installBtn.classList.add('hidden');
@@ -823,7 +872,6 @@ if(installBtn){
     deferredPrompt=null;
   };
 }
-
 window.addEventListener('appinstalled',()=>{
   if(installBtn) installBtn.classList.add('hidden');
   deferredPrompt=null;
