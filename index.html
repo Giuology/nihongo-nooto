@@ -31,15 +31,19 @@ html,body{background:#141c16;color:#e8e4d2;min-height:100%}
   padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
 }
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html{scroll-padding-top:calc(60px + env(safe-area-inset-top,0px))}
 *{box-sizing:border-box}
 body{margin:0;background:#141c16;color:#e8e4d2;font:400 18px/1.6 'Nunito',system-ui,sans-serif}
 .wrap{max-width:860px;margin:0 auto;padding:20px 16px 80px}
 h1{font:700 2rem 'Fraunces',serif;color:#f1e9c9;margin:0}
 h1 small{display:block;font:500 1rem 'Zen Maru Gothic',sans-serif;color:#8fbf7f;letter-spacing:.15em}
-.tabs{display:flex;gap:8px;margin:20px 0;background:#1c271f;padding:6px;border-radius:18px;border:1px solid #34483a}
+
+/* Tabs fixas no topo */
+.tabs-wrap{position:sticky;top:0;z-index:30;background:#141c16;padding:10px 0;margin:10px 0 14px;border-bottom:1px solid #34483a;}
+.tabs{display:flex;gap:8px;background:#1c271f;padding:6px;border-radius:18px;border:1px solid #34483a}
 .tab{flex:1;border:0;background:none;color:#a3b3a0;font:700 1rem 'Nunito';padding:12px;border-radius:13px;cursor:pointer}
 .tab[aria-selected=true]{background:#8fbf7f;color:#14210f}
+
 .bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
 input,textarea,select{background:#233127;color:#e8e4d2;border:1px solid #34483a;border-radius:12px;padding:12px 14px;font:inherit;width:100%}
 input:focus,textarea:focus,select:focus,button:focus-visible,summary:focus-visible{outline:3px solid #b7d3a8;outline-offset:2px}
@@ -62,6 +66,7 @@ label{font-size:.85rem;color:#a3b3a0;font-weight:600}
 .hd,.row{display:grid;grid-template-columns:1fr 1fr 1.4fr 80px;gap:10px;align-items:center;padding:10px 18px}
 .hd{font-size:.75rem;color:#a3b3a0;text-transform:uppercase;letter-spacing:.08em;border-top:1px solid #34483a}
 .row{border-top:1px solid #34483a;font-family:'Zen Maru Gothic',sans-serif}
+.row:nth-child(even){background:#1f2b24;} /* Linhas zebradas */
 .row .k{font-size:1.5rem;color:#f1e9c9;font-weight:500}
 .row .f{font-size:1.15rem;color:#b7d3a8}
 .row .t{font-family:'Nunito';color:#e8e4d2}
@@ -128,10 +133,12 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
 <div class="wrap">
   <h1><small>日本語</small>Meu caderninho de Nihongo</h1>
 
-  <div class="tabs" role="tablist">
-    <button class="tab" role="tab" data-tab="vocab" aria-selected="true">Vocabulário</button>
-    <button class="tab" role="tab" data-tab="gram" aria-selected="false">Gramática</button>
-    <button class="tab" role="tab" data-tab="kanji" aria-selected="false">Kanji</button>
+  <div class="tabs-wrap">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="vocab" aria-selected="true">Vocabulário</button>
+      <button class="tab" role="tab" data-tab="gram" aria-selected="false">Gramática</button>
+      <button class="tab" role="tab" data-tab="kanji" aria-selected="false">Kanji</button>
+    </div>
   </div>
 
   <section id="vocab">
@@ -146,6 +153,7 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
           <input id="vKj" placeholder="Kanji (opcional)" autocomplete="off" autocapitalize="off" aria-label="Kanji">
           <input id="vTr" placeholder="Tradução" autocomplete="off" aria-label="Tradução">
         </div>
+        <input id="vTags" placeholder="Tags (opcional, ex.: N5, Comida)" autocomplete="off">
         <button class="btn" id="addVBtn">Adicionar palavra</button>
         <details class="sub">
           <summary>3 · Ou cole várias palavras de uma vez</summary>
@@ -160,7 +168,7 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
       </div>
     </details>
     <div class="bar">
-      <input id="qV" type="search" placeholder="Buscar palavra, kanji ou tradução…" aria-label="Buscar vocabulário">
+      <input id="qV" type="search" placeholder="Buscar palavra, kanji, tradução ou tag…" aria-label="Buscar vocabulário">
       <select id="fV" aria-label="Filtrar capítulo"></select>
       <label class="chk"><input type="checkbox" id="oV"> só verbos</label>
     </div>
@@ -175,13 +183,14 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
         <label for="gCh">1 · Capítulo (número)</label>
         <input id="gCh" type="number" min="1" max="50" placeholder="Ex.: 1">
         <label>2 · Adicione as regras com o botão abaixo</label>
+        <input id="gTags" placeholder="Tags (opcional, ex.: N5, Partículas)" autocomplete="off">
         <textarea id="gTxt" style="display:none" placeholder="…ou cole aqui o texto das notas gramaticais"></textarea>
         <div class="two"><button class="btn hidden" id="orgG">3 · Organizar</button><button class="btn ghost" id="manG">+ Adicionar regra</button></div>
         <div id="prevG"></div>
       </div>
     </details>
     <div class="bar">
-      <input id="qG" type="search" placeholder="Buscar regra…" aria-label="Buscar gramática">
+      <input id="qG" type="search" placeholder="Buscar regra ou tag…" aria-label="Buscar gramática">
       <select id="fG" aria-label="Filtrar capítulo"></select>
     </div>
     <div id="listG"></div>
@@ -235,6 +244,7 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
   <div class="foot">
     <button class="btn-install hidden" id="installBtn">Instalar o app</button>
     <button class="btn ghost" id="exp">Salvar backup</button>
+    <button class="btn ghost" id="expAnki">Exportar Anki</button>
     <button class="btn ghost hidden" id="expInPlace" title="Sobrescreve o arquivo escolhido na última vez">Salvar no arquivo atual</button>
     <button class="btn ghost hidden" id="forgetFile" title="Esquece o arquivo vinculado">Esquecer arquivo</button>
     <button class="btn ghost" id="impB">Importar arquivo / backup</button>
@@ -258,6 +268,8 @@ mark{background:#4a5f3a;color:#f1e9c9;border-radius:4px;padding:0 2px}
       <input id="editKanji" type="text">
       <label>Tradução</label>
       <input id="editTr" type="text">
+      <label>Tags</label>
+      <input id="editTags" type="text" placeholder="ex.: N5, Comida">
     </div>
     <div id="editGramFields" style="display:none;gap:8px;">
       <label>Padrão da regra</label>
@@ -340,7 +352,7 @@ function renderV(){
   const open=q.trim()||g.length===1;
   $('listV').innerHTML=g.map(([c,it])=>`<details class="chap" ${open?'open':''}><summary>Capítulo ${c}<span class="count">${it.length} palavras</span></summary>
   <div class="hd"><span>Furigana</span><span>Kanji</span><span>Tradução</span><span></span></div>
-  ${it.map(x=>`<div class="row"><span class="f">${hl(x.kana,q)}</span><span class="k">${hl(x.kanji||'—',q)}</span><span class="t">${hl(x.tr,q)}</span><span class="row-actions"><button class="x edit" data-ev="${x.id}" title="Editar">✏️</button><button class="x" data-dv="${x.id}" title="Apagar">×</button></span>${x.verb?vb(x.verb,x.id):''}</div>`).join('')}</details>`).join('');
+  ${it.map(x=>`<div class="row"><span class="f">${hl(x.kana,q)}</span><span class="k">${hl(x.kanji||'—',q)}</span><span class="t">${hl(x.tr,q)} ${x.tags?`<span class="g" style="background:#34483a;color:#b7d3a8;font-size:.7rem;margin-left:6px">${esc(x.tags)}</span>`:''}</span><span class="row-actions"><button class="x edit" data-ev="${x.id}" title="Editar">✏️</button><button class="x" data-dv="${x.id}" title="Apagar">×</button></span>${x.verb?vb(x.verb,x.id):''}</div>`).join('')}</details>`).join('');
 }
 function renderG(){
   const q=$('qG').value,g=group(S.gram,q,$('fG').value);
@@ -348,7 +360,7 @@ function renderG(){
   if(!g.length){$('listG').innerHTML='<div class="empty">Nada encontrado </div>';return}
   const open=q.trim()||g.length===1;
   $('listG').innerHTML=g.map(([c,it])=>`<details class="chap" ${open?'open':''}><summary>Capítulo ${c}<span class="count">${it.length} regras</span></summary>
-  ${it.map(x=>`<div class="gram"><h3>${hl(x.title,q)}<span class="row-actions"><button class="x edit" data-eg="${x.id}" title="Editar">✏️</button><button class="x" data-dg="${x.id}" title="Apagar">×</button></span></h3>${x.expl?`<p>${hl(x.expl,q)}</p>`:''}${x.ex?`<div class="ex">${hl(x.ex,q)}</div>`:''}</div>`).join('')}</details>`).join('');
+  ${it.map(x=>`<div class="gram"><h3>${hl(x.title,q)} ${x.tags?`<span class="g" style="background:#34483a;color:#b7d3a8;font-size:.7rem">${esc(x.tags)}</span>`:''} <span class="row-actions"><button class="x edit" data-eg="${x.id}" title="Editar">✏️</button><button class="x" data-dg="${x.id}" title="Apagar">×</button></span></h3>${x.expl?`<p>${hl(x.expl,q)}</p>`:''}${x.ex?`<div class="ex">${hl(x.ex,q)}</div>`:''}</div>`).join('')}</details>`).join('');
 }
 function renderK(){
   const q=$('qK').value,g=group(S.kanji,q,$('fK').value);
@@ -393,15 +405,14 @@ const IDS={v:{p:'prevV',ch:'vCh',t:'vTxt'},g:{p:'prevG',ch:'gCh',t:'gTxt'}};
 });
 function splitF(l){
   if(/[|\t]/.test(l))return l.split(/\||\t/).map(x=>x.trim());
-  let s=' '+l.trim()+' ';
-  while(/ [-–—] [-–—] /.test(s))s=s.replace(/ ([-–—]) ([-–—]) /,' $1 \u0001 $2 ');
-  return s.trim().split(/ [-–—] /).map(x=>{x=x.trim();return x==='\u0001'?'':x});
+  const s=' '+l.trim().replace(/ [-–—] [-–—] /g,' \u0000 \u0000 ')+' ';
+  return s.trim().split(/ [-–—] /).map(x=>x.trim()==='\u0000'?'':x.trim());
 }
 function localVocab(t){
   return t.split('\n').map(l=>splitF(l)).filter(p=>p.length>=2&&p[0]).map(p=>p.length>=3?{kana:p[0],kanji:p[1],tr:p.slice(2).join(' - ')}:{kana:p[0],kanji:'',tr:p[1]});
 }
 function organize(k){
-  const ch=parseInt($(IDS[k].ch).value),txt=$(IDS[k].t).value.trim();
+  const ch=parseInt($(IDS[k].ch).value),txt=$(IDS[k].t).value.trim(),tags=$('gTags').value.trim();
   if(!(ch>=1&&ch<=MAXCH)){toast('Informe o capítulo (1 a '+MAXCH+').');$(IDS[k].ch).focus();return}
   if(!txt){toast('Cole o texto no formato: furigana - kanji - tradução (uma palavra por linha).');return}
   let items=null;
@@ -412,7 +423,7 @@ function organize(k){
       const title=lines.shift()||'';
       let expl='',ex='';
       lines.forEach(L=>{if(/^[ぁ-んァ-ヶ一-龥]/.test(L))ex+=(ex?'\n':'')+L;else expl+=(expl?'\n':'')+L});
-      return {title,expl,ex};
+      return {title,expl,ex,tags};
     });
   }
   if(!items||!items.length){toast('Não encontrei nada para importar.');return}
@@ -432,12 +443,13 @@ function drawPrev(k){
 }
 function commit(k){
   const p=pend[k];if(!p)return;
-  const ch=p.ch;
+  const ch=p.ch,tags=$('gTags').value.trim();
   const ok=p.items.filter(x=>k==='v'?(x.kana.trim()&&x.tr.trim()):x.title.trim());
   if(!ok.length){toast('Nada para salvar ainda.');return}
   ok.forEach(x=>{
     const it={id:uid(),t:Date.now(),ch,...Object.fromEntries(Object.entries(x).map(([a,b])=>[a,b.trim()]))};
     if(k==='v'&&it.kana.endsWith('ます')&&it.kana.length>2)it.verb=mkVerb(it.kana,it.kanji,guessGroup(it.kana,it.kanji));
+    if(tags && !it.tags) it.tags = tags;
     (k==='v'?S.vocab:S.gram).push(it);
   });
   save();pend[k]=null;drawPrev(k);$(IDS[k].t).value='';
@@ -518,6 +530,7 @@ document.addEventListener('click',e=>{
       $('editKana').value = it.kana;
       $('editKanji').value = it.kanji;
       $('editTr').value = it.tr;
+      $('editTags').value = it.tags || '';
     } else if(currentEdit.type === 'g') {
       const it = S.gram.find(x=>x.id===currentEdit.id);
       $('editTitle').textContent = 'Editar regra';
@@ -569,6 +582,7 @@ if (btnSave) {
         it.kana = $('editKana').value.trim();
         it.kanji = $('editKanji').value.trim();
         it.tr = $('editTr').value.trim();
+        it.tags = $('editTags').value.trim();
         it.t = Date.now();
         if(it.kana.endsWith('ます') && it.kana.length>2){
           it.verb = mkVerb(it.kana, it.kanji, guessGroup(it.kana, it.kanji));
@@ -707,6 +721,26 @@ $('exp').onclick=async()=>{
   a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));
   a.download=fileNameSugerido();document.body.appendChild(a);a.click();a.remove();
 };
+
+// EXPORTAR ANKI
+$('expAnki').onclick=()=>{
+  if(!S.vocab.length){toast('Não há vocabulário para exportar.');return}
+  let txt='';
+  S.vocab.forEach(x=>{
+    const kanji = x.kanji || '';
+    const kana = x.kana || '';
+    const tr = x.tr || '';
+    const tags = x.tags || 'Nihongo';
+    // Formato Anki: Frente<TAB>Verso<TAB>Tags
+    txt += `${kanji}\t${kana}<br><br>${tr}\t${tags}\n`;
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain;charset=utf-8'}));
+  a.download='nihongo-anki-'+new Date().toISOString().slice(0,10)+'.txt';
+  document.body.appendChild(a);a.click();a.remove();
+  toast('Exportado para Anki!');
+};
+
 if($('expInPlace')) $('expInPlace').onclick=salvarNoArquivoAtual;
 if($('forgetFile')) $('forgetFile').onclick=async()=>{
   backupHandle=null;
@@ -765,17 +799,17 @@ $('saveK').onclick=()=>{
 function addVManual(){
   const ch=parseInt($('vCh').value);
   if(!(ch>=1&&ch<=MAXCH)){toast('Informe o capítulo (1 a '+MAXCH+').');$('vCh').focus();return}
-  const kana=$('vKa').value.trim(),kanji=$('vKj').value.trim(),tr=$('vTr').value.trim();
+  const kana=$('vKa').value.trim(),kanji=$('vKj').value.trim(),tr=$('vTr').value.trim(),tags=$('vTags').value.trim();
   if(!kana||!tr){toast('Preencha o furigana e a tradução (o kanji é opcional).');return}
-  const it={id:uid(),t:Date.now(),ch,kana,kanji,tr};
+  const it={id:uid(),t:Date.now(),ch,kana,kanji,tr,tags};
   if(S.vocab.some(x=>vk(x)===vk(it))){toast('Essa palavra já está nesse capítulo.');return}
   if(kana.endsWith('ます')&&kana.length>2)it.verb=mkVerb(kana,kanji,guessGroup(kana,kanji));
   S.vocab.push(it);save();render();$('fV').value=String(ch);renderV();
-  ['vKa','vKj','vTr'].forEach(i=>$(i).value='');$('vKa').focus();
+  ['vKa','vKj','vTr','vTags'].forEach(i=>$(i).value='');$('vKa').focus();
   toast('Adicionada: '+(kanji||kana));
 }
 $('addVBtn').onclick=addVManual;
-['vKa','vKj','vTr'].forEach(i=>$(i).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addVManual()}}));
+['vKa','vKj','vTr','vTags'].forEach(i=>$(i).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addVManual()}}));
 
 function addKManual(){
   const ch=parseInt($('kCh').value);
@@ -791,6 +825,24 @@ function addKManual(){
 }
 $('addKBtn').onclick=addKManual;
 ['kKa','kKu','kOn','kTr'].forEach(i=>$(i).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addKManual()}}));
+
+// Aviso de rascunho não salvo
+window.addEventListener('beforeunload', (e) => {
+  const hasDraft = 
+    ($('vKa') && $('vKa').value.trim()) || 
+    ($('vTr') && $('vTr').value.trim()) ||
+    ($('vKj') && $('vKj').value.trim()) ||
+    ($('vTags') && $('vTags').value.trim()) ||
+    ($('pend') && pend.v && pend.v.items.length) ||
+    ($('kKa') && $('kKa').value.trim()) ||
+    ($('kTr') && $('kTr').value.trim()) ||
+    ($('gTags') && $('gTags').value.trim());
+    
+  if (hasDraft) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
 
 const SK='nihongo-sync-v1';let cfg={};try{cfg=JSON.parse(localStorage.getItem(SK)||'{}')}catch(e){}
 $('sUrl').value=cfg.url||(location.protocol.startsWith('http')?location.origin:'');$('sCode').value=cfg.code||'';
